@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Employee Drug Cooldowns</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
+    h1 { color: #0ff; }
+    .player { border: 1px solid #444; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+    #max-cooldown { margin-top: 20px; padding: 15px; border: 2px solid #0ff; border-radius: 10px; background: #222; }
+  </style>
+</head>
+<body>
+  <h1>Employee Drug Cooldowns</h1>
+  <div id="cooldowns"></div>
+
+  <div id="max-cooldown">
+    <h2>📌 Max Cooldown</h2>
+    <div id="max-emp">Loading...</div>
+  </div>
+
+  <script>
+    let employees = [];
+
+    async function fetchCooldowns() {
+      let res = await fetch("/cooldowns");
+      employees = await res.json();
+      renderCooldowns();
+      renderMaxCooldown();
+    }
+
+    function formatTime(seconds) {
+      let h = Math.floor(seconds / 3600);
+      let m = Math.floor((seconds % 3600) / 60);
+      let s = seconds % 60;
+      return `${h}h ${m}m ${s}s`;
+    }
+
+    function renderCooldowns() {
+      const container = document.getElementById("cooldowns");
+      container.innerHTML = "";
+
+      employees.forEach(emp => {
+        if (emp.error) {
+          container.innerHTML += `
+            <div class="player">
+              <strong>${emp.name}</strong><br>
+              ❌ Error fetching data
+            </div>`;
+        } else {
+          container.innerHTML += `
+            <div class="player" id="emp-${emp.name}">
+              <strong>${emp.name}</strong><br>
+              Drug Cooldown: <span>${formatTime(emp.drug)}</span>
+            </div>`;
+        }
+      });
+    }
+
+    function renderMaxCooldown() {
+      const maxEmp = employees.reduce(
+        (max, emp) =>
+          !emp.error && emp.drug > (max?.drug || 0) ? emp : max,
+        null
+      );
+
+      const container = document.getElementById("max-emp");
+      if (!maxEmp) {
+        container.textContent = "❌ No valid cooldowns.";
+      } else {
+        container.innerHTML = `
+          <strong>${maxEmp.name}</strong><br>
+          Max Cooldown: ${formatTime(maxEmp.drug)}
+        `;
+      }
+    }
+
+    function tickCooldowns() {
+      employees.forEach(emp => {
+        if (!emp.error && emp.drug > 0) {
+          emp.drug--;
+          let elem = document.querySelector(`#emp-${emp.name} span`);
+          if (elem) elem.textContent = formatTime(emp.drug);
+        }
+      });
+      renderMaxCooldown();
+    }
+
+    fetchCooldowns();
+    setInterval(fetchCooldowns, 60000);
+    setInterval(tickCooldowns, 1000);
+  </script>
+</body>
+</html>
