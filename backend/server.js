@@ -1,11 +1,15 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");   // ⬅️ ADD THIS
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const { sendTelegramMessage } = require("./telegram");
 
 const app = express();
-const PORT = process.env.PORT || 3000; // ✅ FIXED
+const PORT = process.env.PORT || 3000;
+
+// ✅ Enable CORS for all requests
+app.use(cors());
 
 // Employee API keys
 const employees = [
@@ -14,7 +18,7 @@ const employees = [
   { name: "VAATHI", key: process.env.VAATHI_KEY },
 ];
 
-let lastNotified = null; // to prevent spam
+let lastNotified = null;
 
 async function getCooldowns() {
   let results = [];
@@ -42,18 +46,15 @@ async function getCooldowns() {
   return results;
 }
 
-// API Endpoint
 app.get("/cooldowns", async (req, res) => {
   const results = await getCooldowns();
 
-  // Find max cooldown
   const maxEmp = results.reduce(
     (max, emp) =>
       !emp.error && emp.drug > (max?.drug || 0) ? emp : max,
     null
   );
 
-  // Notify if 10 mins left
   if (
     maxEmp &&
     maxEmp.drug > 0 &&
@@ -67,7 +68,6 @@ app.get("/cooldowns", async (req, res) => {
   res.json(results);
 });
 
-// Start server
 app.listen(PORT, () =>
   console.log(`🚀 Backend running on port ${PORT}`)
 );
