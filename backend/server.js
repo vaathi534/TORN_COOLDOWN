@@ -3,10 +3,9 @@ const express = require("express");
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const { sendTelegramMessage } = require("./telegram");
-const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; // ✅ FIXED
 
 // Employee API keys
 const employees = [
@@ -43,7 +42,7 @@ async function getCooldowns() {
   return results;
 }
 
-// API endpoint for cooldowns
+// API Endpoint
 app.get("/cooldowns", async (req, res) => {
   const results = await getCooldowns();
 
@@ -54,7 +53,7 @@ app.get("/cooldowns", async (req, res) => {
     null
   );
 
-  // Notify when 10 minutes (600s) left
+  // Notify if 10 mins left
   if (
     maxEmp &&
     maxEmp.drug > 0 &&
@@ -68,14 +67,7 @@ app.get("/cooldowns", async (req, res) => {
   res.json(results);
 });
 
-// ✅ Serve React build from frontend/build
-app.use(express.static(path.join(__dirname, "../frontend/build")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
-});
-
 // Start server
 app.listen(PORT, () =>
-  console.log(`🚀 Server running at http://localhost:${PORT}`)
+  console.log(`🚀 Backend running on port ${PORT}`)
 );
