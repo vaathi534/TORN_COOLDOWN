@@ -15,6 +15,6 @@
   },
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "build": "cd ../frontend && npm install && npm run build"
   }
 }
