@@ -58,7 +58,7 @@ app.get("/cooldowns", async (req, res) => {
   if (
     maxEmp &&
     maxEmp.drug > 0 &&
-    maxEmp.drug <= 600 &&
+    maxEmp.drug <= 0 &&
     lastNotified !== maxEmp.name
   ) {
     sendTelegramMessage("💊✨ Your drugs gonna be delivered soon!");
