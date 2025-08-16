@@ -43,7 +43,7 @@ async function getCooldowns() {
   return results;
 }
 
-// Endpoint for frontend
+// API endpoint for cooldowns
 app.get("/cooldowns", async (req, res) => {
   const results = await getCooldowns();
 
@@ -68,11 +68,11 @@ app.get("/cooldowns", async (req, res) => {
   res.json(results);
 });
 
-// Serve React build
-app.use(express.static(path.join(__dirname, "build")));
+// ✅ Serve React build from frontend/build
+app.use(express.static(path.join(__dirname, "../frontend/build")));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
+  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
 });
 
 // Start server
