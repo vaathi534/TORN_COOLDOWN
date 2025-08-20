@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");   // ⬅️ ADD THIS
+const cors = require("cors");   // enable CORS
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const { sendTelegramMessage } = require("./telegram");
@@ -11,15 +11,18 @@ const PORT = process.env.PORT || 3000;
 // ✅ Enable CORS for all requests
 app.use(cors());
 
-// Employee API keys
-const employees = [
-  { name: "SIKEL", key: process.env.SIKEL_KEY },
-  { name: "SINGHANIA", key: process.env.SINGHANIA_KEY },
-  { name: "VAATHI", key: process.env.VAATHI_KEY },
-];
+// 🔄 Load employees dynamically from .env
+// Example: SIKEL_KEY=xxx, VAATHI_KEY=yyy
+const employees = Object.entries(process.env)
+  .filter(([k]) => k.endsWith("_KEY"))
+  .map(([k, v]) => ({
+    name: k.replace("_KEY", "").replace(/_/g, " "), // BIGEL_JI_KEY → BIGEL JI
+    key: v,
+  }));
 
 let lastNotified = null;
 
+// Fetch cooldowns for all employees
 async function getCooldowns() {
   let results = [];
 
@@ -46,6 +49,7 @@ async function getCooldowns() {
   return results;
 }
 
+// API endpoint: get cooldowns
 app.get("/cooldowns", async (req, res) => {
   const results = await getCooldowns();
 
@@ -61,7 +65,7 @@ app.get("/cooldowns", async (req, res) => {
     maxEmp.drug <= 0 &&
     lastNotified !== maxEmp.name
   ) {
-    sendTelegramMessage("💊✨ Your drugs gonna be delivered soon!");
+    sendTelegramMessage(`💊✨ ${maxEmp.name}'s drugs will be ready soon!`);
     lastNotified = maxEmp.name;
   }
 
